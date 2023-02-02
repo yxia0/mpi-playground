@@ -14,5 +14,5 @@ compile C file and run the program using the following commands
 
 ```
 mpicc -o program ./program.c
-mpirun ./program
+mpirun -np [NUMBER_OF_PROCESSORS] ./program
 ```
