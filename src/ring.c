@@ -7,12 +7,15 @@ int main(void){
 
     /* MPI variables */ 
     MPI_Comm comm;
+    MPI_Request send_request;
+    MPI_Status send_status;
 
     int rank, size;
 
     /* Other variables */
     int curr_val, sum_val, recv_val;
     int istop;
+    int sendest, recvdest;
 
     /* Initialise MPI and get the size of the processors */
     comm = MPI_COMM_WORLD; 
@@ -24,110 +27,29 @@ int main(void){
 
     printf("Hello from rank %d \n", rank);
 
+    sendest = (rank+1) % size;
+    recvdest = (rank-1) % size;
     curr_val = rank;
-    sum_val = 0;
+    sum_val = rank;
 
     istop = size - 1;
 
     for (i = 1; i <= istop; i++){
+        
+        printf("Step %d: Process %d send value %d to its neighbour \n", i, rank, curr_val);    
+        MPI_Issend(&curr_val, 1, MPI_INT, sendest, 0, comm, &send_request);
+        MPI_Recv(&recv_val, 1, MPI_INT, recvdest, 0, comm, MPI_STATUS_IGNORE);
 
-        if (rank==0){
-            // send msg
-            MPI_Request request;
-            printf("Process %d send value %d to its neighbour \n", rank, curr_val);
-            MPI_Issend(&curr_val, 1, MPI_INT, 1, 0, comm, &request);
-            // technically you can do things here, but lets assume an immediate send 
-            MPI_Status status;
-            MPI_Wait(&request, &status);
-            // // receive msg from neighbour 
-            // MPI_Recv(&recv_val, 1, MPI_INT, 3, 0, comm, MPI_STATUS_IGNORE);
-            // printf("Process %d received value: %d.\n", rank, recv_val);
-            // // update sum and curr_val 
-            // sum_val += recv_val;
-            // curr_val = recv_val;
-        } else if (rank==1) {
-            // send msg
-            MPI_Request request;
-            printf("Process %d send value %d to its neighbour \n", rank, curr_val);
-            MPI_Issend(&curr_val, 1, MPI_INT, 2, 0, comm, &request);
-            // technically you can do things here, but lets assume an immediate send 
-            MPI_Status status;
-            MPI_Wait(&request, &status);
-            // // receive msg from neighbour 
-            // MPI_Recv(&recv_val, 1, MPI_INT, 0, 0, comm, MPI_STATUS_IGNORE);
-            // printf("Process %d received value: %d.\n", rank, recv_val);
-            // // update sum and curr_val 
-            // sum_val += recv_val;
-            // curr_val = recv_val;
-        } else if (rank==2) {
-            MPI_Request request;
-            printf("Process %d send value %d to its neighbour \n", rank, curr_val);
-            MPI_Issend(&curr_val, 1, MPI_INT, 3, 0, comm, &request);
-            // technically you can do things here, but lets assume an immediate send 
-            MPI_Status status;
-            MPI_Wait(&request, &status);
-            // // receive msg from neighbour 
-            // MPI_Recv(&recv_val, 1, MPI_INT, 1, 0, comm, MPI_STATUS_IGNORE);
-            // printf("Process %d received value: %d.\n", rank, recv_val);
-            // // update sum and curr_val 
-            // sum_val += recv_val;
-            // curr_val = recv_val;
-        } else if (rank==3) {
-            MPI_Request request;
-            printf("Process %d send value %d to its neighbour \n", rank, curr_val);
-            MPI_Issend(&curr_val, 1, MPI_INT, 0, 0, comm, &request);
-            // technically you can do things here, but lets assume an immediate send 
-            MPI_Status status;
-            MPI_Wait(&request, &status);
-            // // receive msg from neighbour 
-            // MPI_Recv(&recv_val, 1, MPI_INT, 2, 0, comm, MPI_STATUS_IGNORE);
-            // printf("Process %d received value: %d.\n", rank, recv_val);
-            // // update sum and curr_val 
-            // sum_val += recv_val;
-            // curr_val = recv_val;
-        }
+        MPI_Wait(&send_request, &send_status);
+        printf("Step %d: Process %d received value: %d.\n", i, rank, recv_val);
+        // update sum and curr_val 
+        printf("Step %d: Process %d is adding %d to sum %d \n", i, rank, recv_val, sum_val);
+        sum_val += recv_val;
+        curr_val = recv_val; 
+        
+    }           
 
-        if (rank==0){
-            // MPI_Status status;
-            // MPI_Wait(&request, &status);
-            // receive msg from neighbour 
-            MPI_Recv(&recv_val, 1, MPI_INT, 3, 0, comm, MPI_STATUS_IGNORE);
-            printf("Process %d received value: %d.\n", rank, recv_val);
-            // update sum and curr_val 
-            sum_val += recv_val;
-            curr_val = recv_val; 
-        } else if (rank==1) {
-            // MPI_Status status;
-            // MPI_Wait(&request, &status);
-            // receive msg from neighbour 
-            MPI_Recv(&recv_val, 1, MPI_INT, 0, 0, comm, MPI_STATUS_IGNORE);
-            printf("Process %d received value: %d.\n", rank, recv_val);
-            // update sum and curr_val 
-            sum_val += recv_val;
-            curr_val = recv_val;
-        } else if (rank==2) {
-            // MPI_Status status;
-            // MPI_Wait(&request, &status);
-            // receive msg from neighbour 
-            MPI_Recv(&recv_val, 1, MPI_INT, 1, 0, comm, MPI_STATUS_IGNORE);
-            printf("Process %d received value: %d.\n", rank, recv_val);
-            // update sum and curr_val 
-            sum_val += recv_val;
-            curr_val = recv_val;
-        } else if (rank==3) {
-            // MPI_Status status;
-            // MPI_Wait(&request, &status);
-            // receive msg from neighbour 
-            MPI_Recv(&recv_val, 1, MPI_INT, 2, 0, comm, MPI_STATUS_IGNORE);
-            printf("Process %d received value: %d.\n", rank, recv_val);
-            // update sum and curr_val 
-            sum_val += recv_val;
-            curr_val = recv_val;
-        }
-    }
-
-    
-    printf("final sum is %d om processor %d \n", sum_val, rank);
+    printf("final sum is %d on processor %d \n", sum_val, rank);
 
     MPI_Finalize();
 
