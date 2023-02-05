@@ -1,3 +1,7 @@
+/*
+use MPI Reduce to compute global sum 
+*/
+
 #include <stdio.h>
 #include <mpi.h>
 
