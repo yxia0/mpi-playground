@@ -16,9 +16,11 @@ int main(void) {
     // Other variables 
     int root_rank = 0;
     int reduction_result =0; // init as 0
+    double tstart, tend, ttotal;
 
     // initialise MPI process 
     MPI_Init(NULL, NULL);
+    tstart = MPI_Wtime();
 
     comm = MPI_COMM_WORLD; 
     MPI_Comm_rank(comm, &rank);
@@ -28,8 +30,11 @@ int main(void) {
 
     MPI_Reduce(&val, &reduction_result, 1, MPI_INT, MPI_SUM, root_rank, comm);
 
+    tend = MPI_Wtime();
+    ttotal = tend - tstart;
     if (rank == 0) {
         printf("The global sum is %d \n", reduction_result);
+        printf("Time used for the execution is %f \n", ttotal);
     }
 
     MPI_Finalize();
